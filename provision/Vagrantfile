@@ -1,0 +1,66 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# import YAML module
+require 'yaml'
+
+nodes = YAML.load_file('files/nodes.yaml')
+
+# SSH keys loading
+ssh_prv_key = ""
+ssh_pub_key = ""
+
+if File.file?("files/ansible_id_rsa")
+  ssh_prv_key = File.read("files/ansible_id_rsa")
+  ssh_pub_key = File.readlines("files/ansible_id_rsa.pub").first.strip
+else
+  puts "No SSH key found. You will need to remedy this before pushing to the repository."
+end
+
+Vagrant.configure("2") do |config|
+  nodes.each do |node|
+    config.vm.define node["name"] do |config|
+      config.vm.box = node["box"]
+      config.vm.hostname = node["name"]
+      config.vm.network :private_network, ip: node["ip"]
+
+      config.vm.provider :virtualbox do |vb|
+        vb.name = node["name"]
+        vb.memory = node["memory"]
+      end
+
+      # general provision
+      config.vm.provision :shell, :path => node["config"]
+
+      # ansible ssh public key injection
+      config.vm.provision "shell" do |s|
+        s.inline = <<-SHELL
+          if grep -sq "#{ssh_pub_key}" /home/vagrant/.ssh/authorized_keys; then
+            echo "SSH keys already provisioned."
+            exit 0
+          fi
+          echo "SSH key provisioning."
+          mkdir -p /home/vagrant/.ssh/
+          touch /home/vagrant/.ssh/authorized_keys
+          echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+          echo #{ssh_pub_key} > /home/vagrant/.ssh/id_rsa.pub
+          chmod 644 /home/vagrant/.ssh/id_rsa.pub
+          chown -R vagrant:vagrant /home/vagrant
+        SHELL
+      end
+
+      # copy private ssh key only to server
+      if node["name"] == "ansible-server"
+        config.vm.provision "file", source: "../ansible-samples", destination: "ansible-samples"
+
+        config.vm.provision "shell" do |s|
+          s.inline = <<-SHELL
+            echo "#{ssh_prv_key}" > /home/vagrant/.ssh/id_rsa
+            chmod 600 /home/vagrant/.ssh/id_rsa
+            chown -R vagrant:vagrant /home/vagrant
+          SHELL
+        end
+      end
+    end
+  end
+end

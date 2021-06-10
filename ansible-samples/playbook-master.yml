@@ -1,0 +1,10 @@
+---
+- name: Configurar LB
+  hosts: centos1
+  roles:
+    - load-balancer
+
+- name: Configurar APP
+  hosts: ubuntu
+  roles:
+    - backend-app

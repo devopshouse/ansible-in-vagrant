@@ -1,0 +1,6 @@
+                      LB HA_PROXY (Centos1)
+                               |
+                        |             |
+                  APP1 (Ubuntu1)    APP2 (Ubuntu2)
+                               |
+                        MySQL (CentOS2)

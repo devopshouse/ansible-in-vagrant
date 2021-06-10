@@ -1,0 +1,4 @@
+*.log
+.vagrant
+provision/files/ansible_id_rsa
+provision/files/ansible_id_rsa.pub

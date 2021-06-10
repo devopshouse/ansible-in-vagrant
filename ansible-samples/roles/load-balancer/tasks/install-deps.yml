@@ -1,0 +1,7 @@
+- name: Instalar dependencias
+  yum:
+    name:
+      - net-tools
+      - tcpdump
+      - haproxy
+    state: present

@@ -1,0 +1,7 @@
+- name: Instalar dependencias
+  apt:
+    name:
+      - net-tools
+      - tcpdump
+      - apache2
+    state: present

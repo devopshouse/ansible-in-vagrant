@@ -1,0 +1,12 @@
+- name: Configurar HAPROXY
+  copy:
+    src: haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+  notify:
+    - Restart HA Proxy
+
+- name: Inicializado HAPROXY
+  service:
+    name: haproxy
+    enabled: yes
+    state: started

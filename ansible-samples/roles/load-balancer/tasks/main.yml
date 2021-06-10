@@ -1,0 +1,4 @@
+---
+# tasks file for load-balancer
+- include: install-deps.yml
+- include: config-lb.yml 
